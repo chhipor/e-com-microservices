@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: reporting-service-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: reporting_service_db
+      POSTGRES_USER: reporting_user
+      POSTGRES_PASSWORD: reporting_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - reporting_service_pgdata:/var/lib/postgresql/data
+
+volumes:
+  reporting_service_pgdata:

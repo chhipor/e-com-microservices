@@ -1,0 +1,58 @@
+services:
+  auth-postgres:
+    image: postgres:16-alpine
+    container_name: miterm-auth-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: auth_service_db
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: auth_password
+    ports:
+      - "5555:5432"
+    volumes:
+      - auth_postgres_data:/var/lib/postgresql/data
+
+  operation-postgres:
+    image: postgres:16-alpine
+    container_name: miterm-operation-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: operation_service_db
+      POSTGRES_USER: operation_user
+      POSTGRES_PASSWORD: operation_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - operation_postgres_data:/var/lib/postgresql/data
+
+  reporting-postgres:
+    image: postgres:16-alpine
+    container_name: miterm-reporting-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: reporting_service_db
+      POSTGRES_USER: reporting_user
+      POSTGRES_PASSWORD: reporting_password
+    ports:
+      - "5434:5432"
+    volumes:
+      - reporting_postgres_data:/var/lib/postgresql/data
+
+  cron-postgres:
+    image: postgres:16-alpine
+    container_name: miterm-cron-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: cron_service_db
+      POSTGRES_USER: cron_user
+      POSTGRES_PASSWORD: cron_password
+    ports:
+      - "5435:5432"
+    volumes:
+      - cron_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  auth_postgres_data:
+  operation_postgres_data:
+  reporting_postgres_data:
+  cron_postgres_data:

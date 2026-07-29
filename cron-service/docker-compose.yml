@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cron-service-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: cron_service_db
+      POSTGRES_USER: cron_user
+      POSTGRES_PASSWORD: cron_password
+    ports:
+      - "5434:5432"
+    volumes:
+      - cron_service_pgdata:/var/lib/postgresql/data
+
+volumes:
+  cron_service_pgdata:

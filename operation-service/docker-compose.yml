@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: operation-service-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: operation_service_db
+      POSTGRES_USER: operation_user
+      POSTGRES_PASSWORD: operation_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - operation_service_pgdata:/var/lib/postgresql/data
+
+volumes:
+  operation_service_pgdata:

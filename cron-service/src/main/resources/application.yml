@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: cron-service
+  datasource:
+    url: jdbc:postgresql://localhost:5435/cron_service_db
+    username: cron_user
+    password: cron_password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  sql:
+    init:
+      mode: always
+
+server:
+  port: 7777
+
+auth:
+  jwt:
+    secret: MzY0YjY0YjZlNjQ2YjQ2YjY0YjZlNjQ2YjQ2YjY0YjZlNjQ2YjQ2YjY0YjZlNjQ2YjQ2YjY0YjZlNjQ2YjQ=
+    issuer: auth-service
+
+cron:
+  archive-retention-days: 30
