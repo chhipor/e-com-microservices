@@ -1,5 +1,6 @@
 HELP.md
 .gradle
+.gradle-home
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
@@ -18,13 +19,16 @@ bin/
 !**/src/test/**/bin/
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+
+### Local tooling ###
+.agents/
 
 ### NetBeans ###
 /nbproject/private/
