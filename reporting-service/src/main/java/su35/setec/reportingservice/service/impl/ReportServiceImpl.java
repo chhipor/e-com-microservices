@@ -1,7 +1,7 @@
 package su35.setec.reportingservice.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
@@ -133,7 +133,7 @@ public class ReportServiceImpl implements ReportService {
                     .payload(objectMapper.writeValueAsString(payload))
                     .build();
             return reportMapper.toStoredResponse(reportRepository.save(report));
-        } catch (JsonProcessingException ex) {
+        } catch (JacksonException ex) {
             throw new IllegalStateException("Unable to serialize report payload", ex);
         }
     }

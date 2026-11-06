@@ -28,3 +28,7 @@ auth:
 
 cron:
   archive-retention-days: 30
+
+springdoc:
+  servers:
+    - url: /api/jobs

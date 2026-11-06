@@ -25,3 +25,7 @@ auth:
   jwt:
     secret: MzY0YjY0YjZlNjQ2YjQ2YjY0YjZlNjQ2YjQ2YjY0YjZlNjQ2YjQ2YjY0YjZlNjQ2YjQ2YjY0YjZlNjQ2YjQ=
     issuer: auth-service
+
+springdoc:
+  servers:
+    - url: /api/operations

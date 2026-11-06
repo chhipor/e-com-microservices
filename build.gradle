@@ -6,11 +6,11 @@ plugins {
 
 group = 'su35.setec'
 version = '0.0.1-SNAPSHOT'
-description = 'miterm'
+description = 'iShop electronics store'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 

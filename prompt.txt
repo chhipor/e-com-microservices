@@ -1,0 +1,556 @@
+Build a polished, production-quality frontend for the existing iShop electronics e-commerce microservice application.
+
+The current frontend is weak, so redesign it substantially. The result should feel like a real electronics storefront with a separate, professional admin experience—not a generic dashboard template.
+
+## Stack and constraints
+
+- Next.js with React and TypeScript
+- Tailwind CSS and shadcn/ui (or the project’s existing component system)
+- Lucide icons
+- Recharts only where charts materially improve the admin experience
+- Frontend origin: http://localhost:3001
+- Backend gateway base URL: http://localhost:8080
+- Keep API access in a typed service/client layer; do not scatter fetch calls through components.
+- Inspect the backend source and OpenAPI definitions before implementing request/response types. Do not invent endpoints, fields, filters, or order workflows.
+- Use the existing project structure when possible and preserve working setup/configuration.
+- Use realistic loading, empty, error, validation, and unauthorized states.
+- Do not hide API failures behind fake data. Mock data is acceptable only for an intentional development fallback and must be clearly isolated.
+
+## Authentication and authorization
+
+Use these gateway endpoints:
+
+- POST /api/auth/login
+- POST /api/auth/register
+- POST /api/auth/refresh
+
+Implement a typed auth client that stores tokens safely for the current frontend architecture, sends Authorization: Bearer <access-token> for protected requests, and refreshes an expired access token once before signing the user out. Avoid refresh loops.
+
+Registration and login must show backend validation errors clearly. After login, route users according to their role: customers go to the storefront/account area and administrators go to the admin dashboard. Never rely only on hidden navigation for authorization; protect routes in the client and handle 401/403 responses.
+
+## Required pages and flows
+
+### 1. Login
+
+- Branded iShop sign-in page with strong visual hierarchy
+- Email and password fields, show/hide password, validation, submit loading state, and accessible errors
+- Link to registration
+- Preserve the intended destination when redirecting an unauthenticated user
+
+### 2. Register
+
+- Customer registration form based on the actual RegisterRequest fields in the backend
+- Inline validation, password visibility controls, loading state, and server error messages
+- After success, sign the customer in only if the API supports it; otherwise explain the next step and link to login
+- Link back to login
+
+### 3. Public home page
+
+Create a compelling storefront landing page with:
+
+- Sticky responsive header with iShop branding, product navigation/search, account link, and mobile menu
+- Hero section for electronics with a clear primary call to action
+- Featured products loaded from the API when possible
+- Category/value-proposition sections that do not pretend to be backed by nonexistent APIs
+- Static trust signals such as secure checkout, warranty, and support
+- Footer with useful navigation
+- Excellent mobile, tablet, and desktop behavior
+
+### 4. Public products page
+
+Use GET /api/operations/products.
+This endpoint is public and must be fetched without an Authorization header.
+
+Build a polished catalog with responsive product cards, tasteful image treatment or generated placeholders when the API has no image field, name, price, stock/availability, and active status where appropriate.
+
+Include client-side filtering and sorting based only on fields returned by the API. At minimum provide search by product name/SKU and useful price/availability controls when those fields exist. Include filter chips, clear filters, result count, skeleton cards, empty state, retry state, and responsive grid/list behavior.
+
+Do not call nonexistent server-side filter or pagination parameters.
+
+The frontend must not redirect or show a login gate for the public home, products, or product-detail pages. GET /api/operations/products/{id} is also public and must be fetched without an Authorization header. If a public product request returns 401/403, surface the backend configuration problem instead of retrying with fake data or an invented token.
+
+### 5. Product details page
+
+Use GET /api/operations/products/{id}.
+
+Show product name, SKU, description, unit price, stock/availability, active status, breadcrumb navigation, and a clear back-to-products action. Handle invalid IDs, not-found responses, unavailable products, and loading states. Add a purchase/action area only if the backend actually supports that operation; otherwise use a clear contact/availability CTA rather than inventing checkout behavior.
+
+### 6. Customer account page
+
+Create a protected customer account area with:
+
+- Account summary and profile information based on the authenticated user response
+- Sign-out action
+- Clean account navigation that can accommodate orders/preferences later
+- An order/history section only if the backend exposes a customer-safe endpoint and response; do not expose admin data or invent an endpoint
+- Good empty states for customers with no account data or history
+
+Use actual user endpoints and permissions discovered in the backend. Customers must never see admin navigation or reporting data.
+
+### 7. Admin dashboard
+
+Create a separate protected admin shell at /admin with a dark navy sidebar, blue accent, compact but spacious content layout, responsive mobile navigation, breadcrumbs, user menu, and clear active states.
+
+Use backend endpoints that actually exist, including where supported:
+
+- GET /api/reports/sales
+- GET /api/reports/orders
+- GET /api/reports/products
+- GET /api/reports/customers
+- GET /api/operations/orders
+- GET /api/jobs/status
+- GET /actuator/health
+
+The main dashboard should include KPI cards, a sales/orders visualization when response data supports it, inventory/product overview, recent orders, system/job status, refresh controls, skeletons, empty states, and error recovery. Format currency, dates, counts, and statuses consistently.
+
+Add admin product management only for these real CRUD endpoints:
+
+- GET/POST /api/operations/products
+- GET/PUT/DELETE /api/operations/products/{id}
+
+Include a searchable product table, create/edit dialog or page, validation matching ProductRequest, low-stock treatment when stock fields exist, and destructive-action confirmation.
+
+If the backend exposes admin orders, customers, users/roles, reports, or system status endpoints, add focused admin sections using the real controllers and DTOs. If an operation is not implemented by the backend, do not add a fake UI that suggests it works; show an intentional unavailable state or omit it.
+
+## Visual direction
+
+Storefront:
+
+- Modern editorial electronics aesthetic
+- Warm off-white/light gray surfaces, deep ink text, electric blue accent, and restrained highlight color
+- Strong product imagery/placeholders, generous spacing, crisp typography, and subtle motion
+- Avoid the look of a plain CRUD table or starter template
+
+Admin:
+
+- Dark navy sidebar, white/soft-gray workspace, blue accent, rounded cards, compact tables, status badges, and clear data hierarchy
+- Charts should be purposeful, not decorative
+
+Across both experiences:
+
+- Accessible keyboard navigation, visible focus states, semantic labels, and sufficient contrast
+- Responsive from small phones through large desktop screens
+- Toast notifications for successful mutations and actionable errors
+- Reusable components for headers, navigation, product cards, tables, dialogs, forms, skeletons, empty states, and status badges
+- Keep visual language consistent while making storefront and admin intentionally different
+
+## Completion criteria
+
+- All required routes are reachable and linked through the UI.
+- The app works against http://localhost:8080 from origin http://localhost:3001.
+- API types and behavior match the backend source/OpenAPI, including UUID IDs and actual response envelopes.
+- Protected routes, role-based navigation, token refresh, logout, and 401/403 handling work.
+- No invented backend endpoints or silently fake successful mutations.
+- Run available lint, typecheck, and build commands and fix resulting errors.
+
+
+---
+
+# iShop API Reference (for the frontend)
+
+This section was generated from the backend source (controllers, DTOs, security configs,
+service implementations). It is the source of truth for request/response shapes. Do not
+call anything not listed here.
+
+## 1. Basics
+
+- Base URL: http://localhost:8080 (the gateway). Never call the service ports 6666/8888/9999/7777 directly.
+- Allowed browser origins (CORS is handled only by the gateway): http://localhost:3001, http://127.0.0.1:3001
+  (override with the gateway env var CORS_ALLOWED_ORIGINS).
+- CORS allows methods GET, POST, PUT, PATCH, DELETE, OPTIONS; any request header; credentials; preflight cached 3600s.
+- Auth is a Bearer token in the `Authorization` header. The gateway STRIPS the `Cookie`
+  request header, so cookie-based auth will not work.
+- Content-Type: application/json for all request bodies.
+- IDs are UUID strings. Timestamps (`Instant`) are ISO-8601 UTC strings, e.g. "2026-11-06T08:21:13.021432300Z".
+- Money (`BigDecimal`) is a JSON number, e.g. 1299.99. Format it on the client. Display the server's
+  `lineTotal` / `totalAmount` rather than recomputing totals with floating-point math.
+- There is NO pagination, sorting, or filtering on any list endpoint. Lists return a plain JSON array.
+  Filter and sort on the client.
+- No endpoint wraps its response in an envelope (no `{ data: ... }`). Responses are the DTO itself or an array of it.
+
+## 2. Gateway route map
+
+| Frontend path                         | Service           | Forwarded to              |
+|---------------------------------------|-------------------|---------------------------|
+| /api/auth/users, /api/auth/users/**   | auth-service      | /users/**                 |
+| /api/auth/**                          | auth-service      | /auth/**                  |
+| /api/operations/**                    | operation-service | /** (prefix stripped)     |
+| /api/reports/**                       | reporting-service | /reports/**               |
+| /api/jobs/**                          | cron-service      | /jobs/**                  |
+| /actuator/health                      | gateway itself    | public, {"status":"UP"}   |
+| /swagger-ui.html                      | gateway itself    | aggregated Swagger UI     |
+
+## 3. Error responses
+
+All services return this JSON body for handled errors:
+
+```ts
+interface ApiErrorResponse {
+  timestamp: string;             // ISO-8601
+  status: number;                // HTTP status
+  error: string;                 // reason phrase, e.g. "Bad Request"
+  message: string;               // human-readable, e.g. "SKU already exists", "Validation failed"
+  path: string;                  // service-internal path, e.g. "/products" (no /api/... prefix)
+  fieldErrors: Record<string, string> | null;  // only present for validation failures
+}
+```
+
+| Status | When | Body |
+|--------|------|------|
+| 400 | Bean validation failed | message "Validation failed"; `fieldErrors` = { fieldName: message }. Nested list fields use paths like "items[0].quantity". |
+| 400 | Business rule (duplicate email/SKU/name, insufficient stock, inactive product, bad refresh token) | message explains it; `fieldErrors` null |
+| 401 | Wrong email/password on login | message "Authentication failed" |
+| 403 | Missing, invalid, or EXPIRED access token on a protected endpoint | EMPTY body (no JSON) |
+| 403 | Authenticated but lacking a permission (auth-service /users endpoints) | JSON, message "Access denied" |
+| 404 | Entity not found by id | message e.g. "Product not found: <uuid>" |
+| 409 | DB constraint violation (e.g. deleting a product/customer still referenced by an order) | message "Database constraint violation" |
+| 500 | Unexpected error. Also returned for unknown paths when a token is sent, and for a malformed (non-UUID) id | message "Unexpected server error" |
+
+IMPORTANT for the auth client: an expired access token produces 403 with an EMPTY body, not 401.
+The refresh-once logic must trigger on 401 OR on 403-with-empty-body for requests that carried a token.
+A 403 with a JSON body ("Access denied") is a real permission problem: do not refresh, show a forbidden state.
+Validate route ids as UUIDs on the client so a bad URL shows "not found" instead of a 500.
+
+## 4. Auth service: /api/auth
+
+Tokens:
+- Access token: JWT, lifetime 60 minutes (`accessTokenExpiresInSeconds` = 3600).
+- Refresh token: JWT, lifetime 7 days, stored server-side, single use (rotated on every refresh).
+- Logging in revokes ALL previous refresh tokens of that user, so logging in on a second device
+  invalidates the first device's refresh token.
+- There is NO logout endpoint and NO "current user / me" endpoint. Logout = delete the tokens on the client.
+  Keep the `user` object returned by login/refresh as the current-user profile.
+- JWT claims (decodable client-side, not a security boundary): `sub` (email), `userId`, `roles` (e.g. ["USER"]),
+  `tokenType` ("ACCESS" / "REFRESH"), `iss` ("auth-service"), `iat`, `exp`.
+
+Roles and permissions (seeded):
+- ADMIN -> USER_READ, USER_WRITE, USER_UPDATE, USER_DELETE
+- USER  -> USER_READ
+- Default admin account for local dev: admin@local.test / Admin@1234!
+- Registration always creates a USER. Route after login by `user.roles.includes("ADMIN")`.
+
+### POST /api/auth/register  (public)
+Request:
+```ts
+interface RegisterRequest {
+  firstName: string;   // required, max 100
+  lastName: string;    // required, max 100
+  email: string;       // required, valid email, max 150
+  password: string;    // required, max 100, "strong": at least 8 chars with at least one uppercase,
+                       // one lowercase, one digit and one non-alphanumeric character
+}
+```
+Response 201: `UserResponse`. NO tokens are returned: send the user to login, or call login with the same credentials.
+Errors: 400 validation; 400 "Email is already registered".
+
+### POST /api/auth/login  (public)
+Request: `{ email: string; password: string }` (both required; email must be a valid email).
+Response 200: `AuthResponse`.
+Errors: 400 validation; 401 "Authentication failed" (wrong credentials, or a disabled/locked account).
+
+### POST /api/auth/refresh  (public)
+Request: `{ refreshToken: string }`
+Response 200: a new `AuthResponse` with a new access AND a new refresh token. Replace both; the old refresh token is now revoked.
+Errors: 400 "Refresh token is invalid" or "Refresh token is expired or revoked" -> sign the user out. Note: 400, not 401.
+
+```ts
+interface AuthResponse {
+  tokenType: "Bearer";
+  accessToken: string;
+  refreshToken: string;
+  accessTokenExpiresInSeconds: number;   // 3600
+  refreshTokenExpiresInSeconds: number;  // 604800
+  user: UserResponse;
+}
+
+interface UserResponse {
+  id: string;                 // UUID
+  firstName: string;
+  lastName: string;
+  email: string;
+  enabled: boolean;
+  accountNonLocked: boolean;
+  roles: string[];            // e.g. ["ADMIN"] or ["USER"]
+  permissions: string[];      // e.g. ["USER_READ"]
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+### User management: /api/auth/users  (token + permission required)
+
+| Method | Path | Permission | Body | Response |
+|--------|------|------------|------|----------|
+| GET    | /api/auth/users      | USER_READ           | -                   | 200 `UserResponse[]` |
+| GET    | /api/auth/users/{id} | USER_READ           | -                   | 200 `UserResponse`; 404 |
+| PUT    | /api/auth/users/{id} | USER_UPDATE (ADMIN) | `UpdateUserRequest` | 200 `UserResponse`; 400; 404 (incl. "Role not found: X") |
+| DELETE | /api/auth/users/{id} | USER_DELETE (ADMIN) | -                   | 200 `{ message: "User deleted successfully" }`; 404 |
+
+Note: the USER role currently has USER_READ, so ANY logged-in user can list and view all users.
+The UI should still show user management to admins only.
+
+```ts
+interface UpdateUserRequest {    // full replacement: send every field
+  firstName: string;             // required, max 100
+  lastName: string;              // required, max 100
+  email: string;                 // required, email, max 150; 400 if taken by another user
+  enabled: boolean;              // false = cannot log in
+  accountNonLocked: boolean;     // false = cannot log in
+  roleNames: string[];           // required, non-empty; valid values: "ADMIN", "USER"
+}
+```
+There is no "create user" endpoint other than /register.
+
+## 5. Operation service: /api/operations
+
+Security:
+- PUBLIC (send no Authorization header): `GET /api/operations/products` and `GET /api/operations/products/{id}`.
+- EVERYTHING ELSE requires a valid access token.
+- This service does NO role checks: any logged-in user (including the USER role) is technically allowed to
+  create/update/delete products, customers and orders. Restrict these screens to admins in the UI.
+
+### Products
+
+| Method | Path | Auth | Body | Response |
+|--------|------|------|------|----------|
+| GET    | /api/operations/products      | public | -                | 200 `ProductResponse[]`. Includes inactive products: filter on `active` for the storefront. |
+| GET    | /api/operations/products/{id} | public | -                | 200 `ProductResponse`; 404 |
+| POST   | /api/operations/products      | token  | `ProductRequest` | 201 `ProductResponse`; 400 "SKU already exists" / "Product name already exists" |
+| PUT    | /api/operations/products/{id} | token  | `ProductRequest` (full replace) | 200 `ProductResponse`; 400; 404 |
+| DELETE | /api/operations/products/{id} | token  | -                | 200 `{ message: "Product deleted successfully" }`; 404; 409 if the product appears in any order (suggest setting active=false instead) |
+
+```ts
+interface ProductResponse {
+  id: string;
+  name: string;
+  sku: string;
+  description: string | null;
+  unitPrice: number;
+  quantityInStock: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+// There is NO image, category, brand or rating field.
+
+interface ProductRequest {
+  name: string;              // required, max 150, unique
+  sku: string;               // required, max 80, unique
+  description?: string;      // optional, max 500
+  unitPrice: number;         // required, > 0
+  quantityInStock: number;   // required, integer >= 0
+  active?: boolean;          // defaults to true if omitted
+}
+```
+
+### Customers  (token required)
+
+Customers are store records managed by admins. They are NOT linked to auth users (no userId field),
+so a logged-in shopper has no "my customer record" or "my orders" endpoint.
+
+| Method | Path | Body | Response |
+|--------|------|------|----------|
+| GET    | /api/operations/customers      | -                 | 200 `CustomerResponse[]` |
+| GET    | /api/operations/customers/{id} | -                 | 200 `CustomerResponse`; 404 |
+| POST   | /api/operations/customers      | `CustomerRequest` | 201 `CustomerResponse`; 400 "Email already exists" |
+| PUT    | /api/operations/customers/{id} | `CustomerRequest` (full replace) | 200; 400; 404 |
+| DELETE | /api/operations/customers/{id} | -                 | 200 `{ message: "Customer deleted successfully" }`; 404; 409 if the customer has orders |
+
+```ts
+interface CustomerResponse {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string | null;
+  address: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface CustomerRequest {
+  firstName: string;   // required, max 100
+  lastName: string;    // required, max 100
+  email: string;       // required, email, max 150, unique
+  phone?: string;      // optional, max 30
+  address?: string;    // optional, max 255
+}
+```
+
+### Orders  (token required)
+
+| Method | Path | Body | Response |
+|--------|------|------|----------|
+| GET    | /api/operations/orders      | -                    | 200 `OrderResponse[]` |
+| GET    | /api/operations/orders/{id} | -                    | 200 `OrderResponse`; 404 |
+| POST   | /api/operations/orders      | `OrderRequest`       | 201 `OrderResponse` |
+| PUT    | /api/operations/orders/{id} | `OrderUpdateRequest` | 200 `OrderResponse` |
+| DELETE | /api/operations/orders/{id} | -                    | 200 `{ message: "Order deleted successfully" }`; 404 |
+
+Business rules (enforced by the server):
+- New orders are created with status COMPLETED immediately. There is no cart, checkout or payment step.
+- The server computes `orderNumber` ("ORD-<epochMillis>"), `orderDate`, each item's `unitPrice` (the product's
+  current price), `lineTotal` and `totalAmount`. Do not send them.
+- Creating an order DECREMENTS each product's `quantityInStock`. Errors: 400 "Insufficient stock for product: <name>",
+  400 "Product is inactive: <name>", 404 if a customerId or productId does not exist.
+- PUT replaces ALL items and sets the status: the old items' stock is restored, then the new items are deducted again.
+  Setting status CANCELLED does NOT return stock by itself (stock stays deducted for the items you send).
+- DELETE restores stock for all of the order's items.
+- After any order mutation, refetch products if you display stock.
+
+```ts
+type OrderStatus = "PENDING" | "COMPLETED" | "CANCELLED";
+
+interface OrderItemRequest {
+  productId: string;   // required UUID
+  quantity: number;    // required, integer > 0
+}
+
+interface OrderRequest {
+  customerId: string;          // required UUID (an operation-service customer, not an auth user)
+  items: OrderItemRequest[];   // required, at least 1
+}
+
+interface OrderUpdateRequest {
+  status: OrderStatus;         // required
+  items: OrderItemRequest[];   // required, at least 1 (full replacement)
+}
+
+interface OrderItemResponse {
+  id: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  lineTotal: number;
+}
+
+interface OrderResponse {
+  id: string;
+  orderNumber: string;
+  orderDate: string;
+  totalAmount: number;
+  status: OrderStatus;
+  customer: CustomerResponse;   // full customer embedded
+  items: OrderItemResponse[];
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+## 6. Reporting service: /api/reports  (token required; no role checks, so admin UI only)
+
+The GET endpoints compute live aggregates and take no parameters (no date range).
+
+| Method | Path | Response |
+|--------|------|----------|
+| GET  | /api/reports/products        | `ProductReportResponse` |
+| GET  | /api/reports/orders          | `OrderReportResponse` |
+| GET  | /api/reports/customers       | `CustomerReportResponse` |
+| GET  | /api/reports/sales           | `SalesReportResponse` |
+| POST | /api/reports/products/store  | `ReportStoredResponse` (saves a snapshot; no request body) |
+| POST | /api/reports/orders/store    | `ReportStoredResponse` |
+| POST | /api/reports/customers/store | `ReportStoredResponse` |
+| POST | /api/reports/sales/store     | `ReportStoredResponse` |
+
+There is no endpoint to list or read stored snapshots; you only get back the id, type and time.
+
+```ts
+interface ProductReportResponse {
+  totalProducts: number;
+  activeProducts: number;
+  totalStockQuantity: number;
+  averagePrice: number;          // 2 decimals
+}
+
+interface OrderReportResponse {
+  totalOrders: number;
+  completedOrders: number;
+  cancelledOrders: number;
+  totalSales: number;            // sum of ALL orders, including cancelled ones
+  averageOrderValue: number;     // 2 decimals; 0 when there are no orders
+}
+
+interface CustomerReportResponse {
+  totalCustomers: number;
+  distinctCustomerEmails: number;
+}
+
+interface SalesReportResponse {
+  totalRevenue: number;                // sum of ALL orders, including cancelled ones
+  totalOrders: number;
+  bestSellingProduct: string | null;   // product on the single largest order line; null if no orders
+  bestSellingQuantity: number;         // quantity on that one line (not a per-product total)
+}
+
+interface ReportStoredResponse {
+  id: string;
+  reportType: "PRODUCTS" | "ORDERS" | "CUSTOMERS" | "SALES";
+  generatedAt: string;
+}
+```
+
+CAVEAT: reporting-service reads its OWN database (port 5434), separate from operation-service's database (port 5433).
+Report numbers may not match the live /api/operations lists. Label them as reports, and don't compute KPIs by
+mixing the two sources.
+
+## 7. Cron service: /api/jobs  (token required; no role checks, so admin UI only)
+
+### GET /api/jobs/status
+```ts
+interface CronStatusResponse {
+  lastMinuteRun: string | null;        // runs every minute (system summary)
+  lastMidnightRun: string | null;      // daily at 00:00 server time (daily sales)
+  lastSundayRun: string | null;        // Sundays at 00:00 (archives audit logs older than 30 days)
+  lastMinuteReportId: string | null;
+  lastMidnightReportId: string | null;
+  lastSundayReportId: string | null;
+}
+```
+Status is kept in memory: each field is null until that job has run since the cron service last started
+(midnight/Sunday are usually null right after a restart). Render null as "Not run since restart", not as an error.
+There are no endpoints to trigger jobs or to read their reports.
+
+## 8. Endpoint summary
+
+| Method | Gateway path | Auth |
+|--------|--------------|------|
+| POST   | /api/auth/register                                   | public |
+| POST   | /api/auth/login                                      | public |
+| POST   | /api/auth/refresh                                    | public |
+| GET    | /api/auth/users                                      | token + USER_READ |
+| GET    | /api/auth/users/{id}                                 | token + USER_READ |
+| PUT    | /api/auth/users/{id}                                 | token + USER_UPDATE |
+| DELETE | /api/auth/users/{id}                                 | token + USER_DELETE |
+| GET    | /api/operations/products                             | public |
+| GET    | /api/operations/products/{id}                        | public |
+| POST   | /api/operations/products                             | token |
+| PUT    | /api/operations/products/{id}                        | token |
+| DELETE | /api/operations/products/{id}                        | token |
+| GET    | /api/operations/customers                            | token |
+| GET    | /api/operations/customers/{id}                       | token |
+| POST   | /api/operations/customers                            | token |
+| PUT    | /api/operations/customers/{id}                       | token |
+| DELETE | /api/operations/customers/{id}                       | token |
+| GET    | /api/operations/orders                               | token |
+| GET    | /api/operations/orders/{id}                          | token |
+| POST   | /api/operations/orders                               | token |
+| PUT    | /api/operations/orders/{id}                          | token |
+| DELETE | /api/operations/orders/{id}                          | token |
+| GET    | /api/reports/products                                | token |
+| GET    | /api/reports/orders                                  | token |
+| GET    | /api/reports/customers                               | token |
+| GET    | /api/reports/sales                                   | token |
+| POST   | /api/reports/{products,orders,customers,sales}/store | token |
+| GET    | /api/jobs/status                                     | token |
+| GET    | /actuator/health                                     | public (gateway) |
+
+## 9. Endpoints that do NOT exist (don't build UI that depends on them)
+
+- Logout, current user ("me"), change password, forgot/reset password
+- Creating a user other than via /register; listing roles or permissions
+- Customer-facing "my orders", or any link between auth users and customers
+- Cart, checkout, payment
+- Product images, categories, and search/filter/pagination query parameters
+- A status-only order update (PATCH): status changes go through the full PUT
+- Listing stored reports, or triggering cron jobs

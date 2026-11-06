@@ -1,13 +1,10 @@
-package su35.setec.miterm;
+package su35.setec.gatewayservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class MitermApplicationTests {
-
+class GatewayServiceApplicationTests {
     @Test
-    void contextLoads() {
-    }
-
+    void contextLoads() { }
 }

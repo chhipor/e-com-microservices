@@ -1,1 +1,3 @@
-rootProject.name = 'miterm'
+rootProject.name = 'iShop'
+
+include('auth-service', 'operation-service', 'gateway-service', 'cron-service', 'reporting-service')

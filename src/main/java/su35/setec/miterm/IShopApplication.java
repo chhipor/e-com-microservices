@@ -1,13 +1,11 @@
-package su35.setec.miterm;
+package su35.setec.ishop;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class MitermApplication {
-
+public class IShopApplication {
     public static void main(String[] args) {
-        SpringApplication.run(MitermApplication.class, args);
+        SpringApplication.run(IShopApplication.class, args);
     }
-
 }

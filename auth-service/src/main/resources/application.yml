@@ -8,7 +8,10 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: validate
+      # Keep local development resilient when the Postgres volume predates the schema.
+      # schema.sql/data.sql still initialize the database and this lets Hibernate create
+      # any missing mapped tables instead of failing with "relation users does not exist".
+      ddl-auto: update
     open-in-view: false
     properties:
       hibernate:
@@ -17,9 +20,8 @@ spring:
   sql:
     init:
       mode: always
-  jackson:
-    serialization:
-      write-dates-as-timestamps: false
+  # Dates are written as ISO-8601 strings: that is Jackson 3's default (Spring Boot 4),
+  # so the old spring.jackson.serialization.write-dates-as-timestamps setting is not needed.
 
 server:
   port: 6666
@@ -40,3 +42,7 @@ auth:
     password: Admin@1234!
     first-name: System
     last-name: Administrator
+
+springdoc:
+  servers:
+    - url: /api/auth

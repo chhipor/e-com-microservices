@@ -1,8 +1,110 @@
 services:
+  gateway-service:
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args:
+        SERVICE: gateway-service
+    container_name: ishop-gateway-service
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8080
+      # Defaults target the service containers below. To route to a service you run
+      # on the host instead, override e.g. AUTH_SERVICE_URL=http://host.docker.internal:6666
+      AUTH_SERVICE_URL: ${AUTH_SERVICE_URL:-http://auth-service:6666}
+      OPERATION_SERVICE_URL: ${OPERATION_SERVICE_URL:-http://operation-service:8888}
+      REPORTING_SERVICE_URL: ${REPORTING_SERVICE_URL:-http://reporting-service:9999}
+      CRON_SERVICE_URL: ${CRON_SERVICE_URL:-http://cron-service:7777}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3001,http://127.0.0.1:3001}
+    depends_on:
+      - auth-service
+      - operation-service
+      - reporting-service
+      - cron-service
+    ports:
+      - "8080:8080"
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args:
+        SERVICE: auth-service
+    container_name: ishop-auth-service
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-postgres:5432/auth_service_db
+    depends_on:
+      auth-postgres:
+        condition: service_healthy
+    # Internal only: the gateway reaches it as <service>:6666. Not published to the
+    # host, so it never conflicts with a copy you run locally with bootRun.
+    expose:
+      - "6666"
+
+  operation-service:
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args:
+        SERVICE: operation-service
+    container_name: ishop-operation-service
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://operation-postgres:5432/operation_service_db
+    depends_on:
+      operation-postgres:
+        condition: service_healthy
+    # Internal only: the gateway reaches it as <service>:8888. Not published to the
+    # host, so it never conflicts with a copy you run locally with bootRun.
+    expose:
+      - "8888"
+
+  reporting-service:
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args:
+        SERVICE: reporting-service
+    container_name: ishop-reporting-service
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://reporting-postgres:5432/reporting_service_db
+    depends_on:
+      reporting-postgres:
+        condition: service_healthy
+    # Internal only: the gateway reaches it as <service>:9999. Not published to the
+    # host, so it never conflicts with a copy you run locally with bootRun.
+    expose:
+      - "9999"
+
+  cron-service:
+    build:
+      context: .
+      dockerfile: docker/service.Dockerfile
+      args:
+        SERVICE: cron-service
+    container_name: ishop-cron-service
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://cron-postgres:5432/cron_service_db
+    depends_on:
+      cron-postgres:
+        condition: service_healthy
+    # Internal only: the gateway reaches it as <service>:7777. Not published to the
+    # host, so it never conflicts with a copy you run locally with bootRun.
+    expose:
+      - "7777"
+
   auth-postgres:
     image: postgres:16-alpine
-    container_name: miterm-auth-postgres
+    container_name: ishop-auth-postgres
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth_user -d auth_service_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     environment:
       POSTGRES_DB: auth_service_db
       POSTGRES_USER: auth_user
@@ -11,11 +113,18 @@ services:
       - "5555:5432"
     volumes:
       - auth_postgres_data:/var/lib/postgresql/data
+      - ./auth-service/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-auth-schema.sql:ro
+      - ./auth-service/src/main/resources/data.sql:/docker-entrypoint-initdb.d/02-auth-data.sql:ro
 
   operation-postgres:
     image: postgres:16-alpine
-    container_name: miterm-operation-postgres
+    container_name: ishop-operation-postgres
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U operation_user -d operation_service_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     environment:
       POSTGRES_DB: operation_service_db
       POSTGRES_USER: operation_user
@@ -24,11 +133,17 @@ services:
       - "5433:5432"
     volumes:
       - operation_postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/operation-init.sql:/docker-entrypoint-initdb.d/operation-init.sql:ro
 
   reporting-postgres:
     image: postgres:16-alpine
-    container_name: miterm-reporting-postgres
+    container_name: ishop-reporting-postgres
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reporting_user -d reporting_service_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     environment:
       POSTGRES_DB: reporting_service_db
       POSTGRES_USER: reporting_user
@@ -40,8 +155,13 @@ services:
 
   cron-postgres:
     image: postgres:16-alpine
-    container_name: miterm-cron-postgres
+    container_name: ishop-cron-postgres
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cron_user -d cron_service_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     environment:
       POSTGRES_DB: cron_service_db
       POSTGRES_USER: cron_user

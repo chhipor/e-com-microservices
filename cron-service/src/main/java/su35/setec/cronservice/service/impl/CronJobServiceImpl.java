@@ -1,7 +1,7 @@
 package su35.setec.cronservice.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Comparator;
@@ -113,7 +113,7 @@ public class CronJobServiceImpl implements CronJobService {
                     .generatedAt(Instant.now())
                     .payload(objectMapper.writeValueAsString(payload))
                     .build());
-        } catch (JsonProcessingException ex) {
+        } catch (JacksonException ex) {
             throw new IllegalStateException("Unable to serialize report payload", ex);
         }
     }
