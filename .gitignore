@@ -39,3 +39,13 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# Gradle
+.gradle/
+.gradle-home/
+**/build/
+
+# Environment
+.env
+.env.*
+!.env.example
