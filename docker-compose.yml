@@ -15,7 +15,7 @@ services:
       OPERATION_SERVICE_URL: ${OPERATION_SERVICE_URL:-http://operation-service:8888}
       REPORTING_SERVICE_URL: ${REPORTING_SERVICE_URL:-http://reporting-service:9999}
       CRON_SERVICE_URL: ${CRON_SERVICE_URL:-http://cron-service:7777}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3001,http://127.0.0.1:3001}
+      CORS_ALLOWED_ORIGIN_PATTERNS: ${CORS_ALLOWED_ORIGIN_PATTERNS:-http://localhost:[*],http://127.0.0.1:[*]}
     depends_on:
       - auth-service
       - operation-service

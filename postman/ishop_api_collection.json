@@ -1,7 +1,7 @@
 {
   "_type": "export",
   "__export_format": 4,
-  "__export_date": "2026-11-05T00:00:00.000Z",
+  "__export_date": "2026-11-10T09:26:36.508Z",
   "__export_source": "codex.ishop",
   "resources": [
     {
@@ -41,7 +41,7 @@
       "modified": 0,
       "created": 0,
       "name": "Auth",
-      "description": "Registration, login, and token refresh",
+      "description": "Registration, login, and token refresh (public)",
       "environment": {},
       "environmentPropertyOrder": null,
       "metaSortKey": 0,
@@ -56,9 +56,17 @@
       "name": "Register",
       "description": "Create a customer account",
       "method": "POST",
-      "body": { "mimeType": "application/json", "text": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Admin@1234!\"\n}" },
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Admin@1234!\"\n}"
+      },
       "parameters": [],
-      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
       "authentication": {},
       "metaSortKey": 0,
       "isPrivate": false,
@@ -79,9 +87,17 @@
       "name": "Login",
       "description": "Login with the seeded admin or a registered user, then copy accessToken and refreshToken into the environment",
       "method": "POST",
-      "body": { "mimeType": "application/json", "text": "{\n  \"email\": \"admin@local.test\",\n  \"password\": \"Admin@1234!\"\n}" },
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"admin@local.test\",\n  \"password\": \"Admin@1234!\"\n}"
+      },
       "parameters": [],
-      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
       "authentication": {},
       "metaSortKey": 1,
       "isPrivate": false,
@@ -100,12 +116,142 @@
       "created": 0,
       "url": "{{ _.baseUrl }}/api/auth/refresh",
       "name": "Refresh Token",
+      "description": "Exchange the refresh token for a new token pair",
       "method": "POST",
-      "body": { "mimeType": "application/json", "text": "{\n  \"refreshToken\": \"{{ _.refreshToken }}\"\n}" },
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"refreshToken\": \"{{ _.refreshToken }}\"\n}"
+      },
       "parameters": [],
-      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
       "authentication": {},
       "metaSortKey": 2,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "fld_users",
+      "parentId": "wrk_ishop_api",
+      "modified": 0,
+      "created": 0,
+      "name": "Users (Admin)",
+      "description": "User management; requires USER_READ / USER_UPDATE / USER_DELETE authorities",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 1,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_users",
+      "parentId": "fld_users",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/auth/users",
+      "name": "List Users",
+      "description": "List all users",
+      "method": "GET",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 0,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_user_detail",
+      "parentId": "fld_users",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/auth/users/{{ _.userId }}",
+      "name": "Get User",
+      "description": "Get a user by ID",
+      "method": "GET",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 1,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_user_update",
+      "parentId": "fld_users",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/auth/users/{{ _.userId }}",
+      "name": "Update User",
+      "description": "Update a user profile, status, and roles",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"enabled\": true,\n  \"accountNonLocked\": true,\n  \"roleNames\": [\n    \"USER\"\n  ]\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 2,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_user_delete",
+      "parentId": "fld_users",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/auth/users/{{ _.userId }}",
+      "name": "Delete User",
+      "description": "Delete a user",
+      "method": "DELETE",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 3,
       "isPrivate": false,
       "settingStoreCookies": true,
       "settingSendCookies": true,
@@ -121,18 +267,20 @@
       "modified": 0,
       "created": 0,
       "name": "Products",
-      "description": "Product catalog and administration",
+      "description": "Public product reads; writes require ADMIN",
       "environment": {},
       "environmentPropertyOrder": null,
-      "metaSortKey": 1,
+      "metaSortKey": 2,
       "_type": "request_group"
     },
     {
       "_id": "req_products_list",
       "parentId": "fld_products",
       "modified": 0,
+      "created": 0,
       "url": "{{ _.baseUrl }}/api/operations/products",
       "name": "List Products",
+      "description": "Public: list all products",
       "method": "GET",
       "parameters": [],
       "headers": [],
@@ -151,8 +299,10 @@
       "_id": "req_product_detail",
       "parentId": "fld_products",
       "modified": 0,
+      "created": 0,
       "url": "{{ _.baseUrl }}/api/operations/products/{{ _.productId }}",
       "name": "Get Product",
+      "description": "Public: get a product by ID",
       "method": "GET",
       "parameters": [],
       "headers": [],
@@ -171,13 +321,26 @@
       "_id": "req_product_create",
       "parentId": "fld_products",
       "modified": 0,
+      "created": 0,
       "url": "{{ _.baseUrl }}/api/operations/products",
       "name": "Create Product (Admin)",
+      "description": "Create a product (up to 10 images)",
       "method": "POST",
-      "body": { "mimeType": "application/json", "text": "{\n  \"name\": \"Laptop\",\n  \"sku\": \"LAP-001\",\n  \"description\": \"Business laptop\",\n  \"unitPrice\": 899.99,\n  \"quantityInStock\": 25,\n  \"active\": true\n}" },
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Laptop\",\n  \"sku\": \"LAP-001\",\n  \"description\": \"Business laptop\",\n  \"unitPrice\": 899.99,\n  \"quantityInStock\": 25,\n  \"active\": true,\n  \"thumbnail\": \"https://example.com/images/lap-001-thumb.jpg\",\n  \"images\": [\n    \"https://example.com/images/lap-001-1.jpg\",\n    \"https://example.com/images/lap-001-2.jpg\"\n  ]\n}"
+      },
       "parameters": [],
-      "headers": [{ "name": "Content-Type", "value": "application/json" }],
-      "authentication": { "type": "bearer", "token": "{{ _.accessToken }}" },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
       "metaSortKey": 2,
       "isPrivate": false,
       "settingStoreCookies": true,
@@ -192,13 +355,26 @@
       "_id": "req_product_update",
       "parentId": "fld_products",
       "modified": 0,
+      "created": 0,
       "url": "{{ _.baseUrl }}/api/operations/products/{{ _.productId }}",
       "name": "Update Product (Admin)",
+      "description": "Update a product",
       "method": "PUT",
-      "body": { "mimeType": "application/json", "text": "{\n  \"name\": \"Laptop Pro\",\n  \"sku\": \"LAP-001\",\n  \"description\": \"Updated business laptop\",\n  \"unitPrice\": 999.99,\n  \"quantityInStock\": 20,\n  \"active\": true\n}" },
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Laptop Pro\",\n  \"sku\": \"LAP-001\",\n  \"description\": \"Updated business laptop\",\n  \"unitPrice\": 999.99,\n  \"quantityInStock\": 20,\n  \"active\": true,\n  \"thumbnail\": \"https://example.com/images/lap-001-thumb.jpg\",\n  \"images\": [\n    \"https://example.com/images/lap-001-1.jpg\",\n    \"https://example.com/images/lap-001-2.jpg\"\n  ]\n}"
+      },
       "parameters": [],
-      "headers": [{ "name": "Content-Type", "value": "application/json" }],
-      "authentication": { "type": "bearer", "token": "{{ _.accessToken }}" },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
       "metaSortKey": 3,
       "isPrivate": false,
       "settingStoreCookies": true,
@@ -213,12 +389,17 @@
       "_id": "req_product_delete",
       "parentId": "fld_products",
       "modified": 0,
+      "created": 0,
       "url": "{{ _.baseUrl }}/api/operations/products/{{ _.productId }}",
       "name": "Delete Product (Admin)",
+      "description": "Delete a product",
       "method": "DELETE",
       "parameters": [],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.accessToken }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
       "metaSortKey": 4,
       "isPrivate": false,
       "settingStoreCookies": true,
@@ -230,27 +411,32 @@
       "_type": "request"
     },
     {
-      "_id": "fld_admin",
+      "_id": "fld_account",
       "parentId": "wrk_ishop_api",
       "modified": 0,
       "created": 0,
-      "name": "Admin and Operations",
-      "description": "Protected admin endpoints",
+      "name": "My Account",
+      "description": "Signed-in customer profile; any authenticated user",
       "environment": {},
       "environmentPropertyOrder": null,
-      "metaSortKey": 2,
+      "metaSortKey": 3,
       "_type": "request_group"
     },
     {
-      "_id": "req_users",
-      "parentId": "fld_admin",
+      "_id": "req_me_get",
+      "parentId": "fld_account",
       "modified": 0,
-      "url": "{{ _.baseUrl }}/api/auth/users",
-      "name": "List Users",
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/operations/customers/me",
+      "name": "Get My Profile",
+      "description": "Get the current customer profile",
       "method": "GET",
       "parameters": [],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.accessToken }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
       "metaSortKey": 0,
       "isPrivate": false,
       "settingStoreCookies": true,
@@ -262,15 +448,29 @@
       "_type": "request"
     },
     {
-      "_id": "req_orders",
-      "parentId": "fld_admin",
+      "_id": "req_me_update",
+      "parentId": "fld_account",
       "modified": 0,
-      "url": "{{ _.baseUrl }}/api/operations/orders",
-      "name": "List Orders",
-      "method": "GET",
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/operations/customers/me",
+      "name": "Update My Profile",
+      "description": "Update the current customer profile (email comes from the token)",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"phone\": \"+85512345678\",\n  \"address\": \"Phnom Penh, Cambodia\"\n}"
+      },
       "parameters": [],
-      "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.accessToken }}" },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
       "metaSortKey": 1,
       "isPrivate": false,
       "settingStoreCookies": true,
@@ -282,15 +482,100 @@
       "_type": "request"
     },
     {
-      "_id": "req_sales_report",
-      "parentId": "fld_admin",
+      "_id": "fld_cart",
+      "parentId": "wrk_ishop_api",
       "modified": 0,
-      "url": "{{ _.baseUrl }}/api/reports/sales",
-      "name": "Sales Report",
+      "created": 0,
+      "name": "Cart",
+      "description": "Shopping cart for the signed-in user; any authenticated user",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 4,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_cart_get",
+      "parentId": "fld_cart",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/operations/cart",
+      "name": "Get Cart",
+      "description": "Get the current cart",
       "method": "GET",
       "parameters": [],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.accessToken }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 0,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_cart_add",
+      "parentId": "fld_cart",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/operations/cart/items",
+      "name": "Add Cart Item",
+      "description": "Add a product to the cart (quantity 1-99)",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"productId\": \"{{ _.productId }}\",\n  \"quantity\": 1\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 1,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_cart_update",
+      "parentId": "fld_cart",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/operations/cart/items/{{ _.productId }}",
+      "name": "Update Cart Item",
+      "description": "Set the quantity of a cart item (1-99)",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"quantity\": 3\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
       "metaSortKey": 2,
       "isPrivate": false,
       "settingStoreCookies": true,
@@ -302,15 +587,20 @@
       "_type": "request"
     },
     {
-      "_id": "req_job_status",
-      "parentId": "fld_admin",
+      "_id": "req_cart_remove",
+      "parentId": "fld_cart",
       "modified": 0,
-      "url": "{{ _.baseUrl }}/api/jobs/status",
-      "name": "Job Status",
-      "method": "GET",
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/operations/cart/items/{{ _.productId }}",
+      "name": "Remove Cart Item",
+      "description": "Remove a product from the cart",
+      "method": "DELETE",
       "parameters": [],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.accessToken }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
       "metaSortKey": 3,
       "isPrivate": false,
       "settingStoreCookies": true,
@@ -322,16 +612,714 @@
       "_type": "request"
     },
     {
-      "_id": "req_health",
-      "parentId": "fld_admin",
+      "_id": "req_cart_clear",
+      "parentId": "fld_cart",
       "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/operations/cart",
+      "name": "Clear Cart",
+      "description": "Remove all items from the cart",
+      "method": "DELETE",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 4,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_cart_checkout",
+      "parentId": "fld_cart",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/operations/cart/checkout",
+      "name": "Checkout",
+      "description": "Create an order from the cart",
+      "method": "POST",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 5,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "fld_my_orders",
+      "parentId": "wrk_ishop_api",
+      "modified": 0,
+      "created": 0,
+      "name": "My Orders",
+      "description": "Orders of the signed-in user; any authenticated user",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 5,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_my_orders",
+      "parentId": "fld_my_orders",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/operations/orders/me",
+      "name": "List My Orders",
+      "description": "List orders of the current user",
+      "method": "GET",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 0,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_my_order_detail",
+      "parentId": "fld_my_orders",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/operations/orders/me/{{ _.orderId }}",
+      "name": "Get My Order",
+      "description": "Get one order of the current user",
+      "method": "GET",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 1,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_my_order_cancel",
+      "parentId": "fld_my_orders",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/operations/orders/me/{{ _.orderId }}/cancel",
+      "name": "Cancel My Order",
+      "description": "Cancel one order of the current user",
+      "method": "POST",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 2,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "fld_customers",
+      "parentId": "wrk_ishop_api",
+      "modified": 0,
+      "created": 0,
+      "name": "Customers (Admin)",
+      "description": "Customer management; requires ADMIN",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 6,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_customers",
+      "parentId": "fld_customers",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/operations/customers",
+      "name": "List Customers",
+      "description": "List all customers",
+      "method": "GET",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 0,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_customer_detail",
+      "parentId": "fld_customers",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/operations/customers/{{ _.customerId }}",
+      "name": "Get Customer",
+      "description": "Get a customer by ID",
+      "method": "GET",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 1,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_customer_create",
+      "parentId": "fld_customers",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/operations/customers",
+      "name": "Create Customer",
+      "description": "Create a customer",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"email\": \"jane.smith@example.com\",\n  \"phone\": \"+85512345678\",\n  \"address\": \"Phnom Penh, Cambodia\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 2,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_customer_update",
+      "parentId": "fld_customers",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/operations/customers/{{ _.customerId }}",
+      "name": "Update Customer",
+      "description": "Update a customer",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"email\": \"jane.smith@example.com\",\n  \"phone\": \"+85598765432\",\n  \"address\": \"Siem Reap, Cambodia\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 3,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_customer_delete",
+      "parentId": "fld_customers",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/operations/customers/{{ _.customerId }}",
+      "name": "Delete Customer",
+      "description": "Delete a customer",
+      "method": "DELETE",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 4,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "fld_orders",
+      "parentId": "wrk_ishop_api",
+      "modified": 0,
+      "created": 0,
+      "name": "Orders (Admin)",
+      "description": "Order management; requires ADMIN",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 7,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_orders",
+      "parentId": "fld_orders",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/operations/orders",
+      "name": "List Orders",
+      "description": "List all orders",
+      "method": "GET",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 0,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_order_detail",
+      "parentId": "fld_orders",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/operations/orders/{{ _.orderId }}",
+      "name": "Get Order",
+      "description": "Get an order by ID",
+      "method": "GET",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 1,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_order_create",
+      "parentId": "fld_orders",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/operations/orders",
+      "name": "Create Order",
+      "description": "Create an order for a customer",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"customerId\": \"{{ _.customerId }}\",\n  \"items\": [\n    {\n      \"productId\": \"{{ _.productId }}\",\n      \"quantity\": 2\n    }\n  ]\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 2,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_order_update",
+      "parentId": "fld_orders",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/operations/orders/{{ _.orderId }}",
+      "name": "Update Order",
+      "description": "Update order status (PENDING, COMPLETED, CANCELLED) and items",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"status\": \"COMPLETED\",\n  \"items\": [\n    {\n      \"productId\": \"{{ _.productId }}\",\n      \"quantity\": 2\n    }\n  ]\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 3,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_order_delete",
+      "parentId": "fld_orders",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/operations/orders/{{ _.orderId }}",
+      "name": "Delete Order",
+      "description": "Delete an order",
+      "method": "DELETE",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 4,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "fld_reports",
+      "parentId": "wrk_ishop_api",
+      "modified": 0,
+      "created": 0,
+      "name": "Reports",
+      "description": "Reporting service",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 8,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_report_products",
+      "parentId": "fld_reports",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/reports/products",
+      "name": "Products Report",
+      "description": "Product report",
+      "method": "GET",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 0,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_report_orders",
+      "parentId": "fld_reports",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/reports/orders",
+      "name": "Orders Report",
+      "description": "Order report",
+      "method": "GET",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 1,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_report_customers",
+      "parentId": "fld_reports",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/reports/customers",
+      "name": "Customers Report",
+      "description": "Customer report",
+      "method": "GET",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 2,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_sales_report",
+      "parentId": "fld_reports",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/reports/sales",
+      "name": "Sales Report",
+      "description": "Sales report",
+      "method": "GET",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 3,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_report_products_store",
+      "parentId": "fld_reports",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/reports/products/store",
+      "name": "Store Products Report",
+      "description": "Generate and store the product report",
+      "method": "POST",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 4,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_report_orders_store",
+      "parentId": "fld_reports",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/reports/orders/store",
+      "name": "Store Orders Report",
+      "description": "Generate and store the order report",
+      "method": "POST",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 5,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_report_customers_store",
+      "parentId": "fld_reports",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/reports/customers/store",
+      "name": "Store Customers Report",
+      "description": "Generate and store the customer report",
+      "method": "POST",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 6,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_report_sales_store",
+      "parentId": "fld_reports",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/reports/sales/store",
+      "name": "Store Sales Report",
+      "description": "Generate and store the sales report",
+      "method": "POST",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 7,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "fld_system",
+      "parentId": "wrk_ishop_api",
+      "modified": 0,
+      "created": 0,
+      "name": "Jobs and Health",
+      "description": "Cron job status and gateway health",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 9,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_job_status",
+      "parentId": "fld_system",
+      "modified": 0,
+      "created": 0,
+      "url": "{{ _.baseUrl }}/api/jobs/status",
+      "name": "Job Status",
+      "description": "Scheduled job status",
+      "method": "GET",
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.accessToken }}"
+      },
+      "metaSortKey": 0,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_health",
+      "parentId": "fld_system",
+      "modified": 0,
+      "created": 0,
       "url": "{{ _.baseUrl }}/actuator/health",
       "name": "Gateway Health",
+      "description": "Gateway health check (public)",
       "method": "GET",
       "parameters": [],
       "headers": [],
       "authentication": {},
-      "metaSortKey": 4,
+      "metaSortKey": 1,
       "isPrivate": false,
       "settingStoreCookies": true,
       "settingSendCookies": true,

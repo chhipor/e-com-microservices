@@ -1,5 +1,6 @@
 package su35.setec.operationservice.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,8 +31,17 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers(HttpMethod.GET, "/products", "/products/**").permitAll()
+                        // Everything else needs a valid access token. Customer self-service
+                        // (/cart, /customers/me, /orders/me) is open to any signed-in user;
+                        // admin endpoints add @PreAuthorize("hasRole('ADMIN')") so a wrong role
+                        // gets a JSON "Access denied" 403 instead of the empty missing-token 403.
                         .anyRequest().authenticated())
+                // Missing/expired token -> 403 with an EMPTY body (client convention). Set the
+                // status directly instead of sendError() so it is not rendered by /error as JSON.
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(
+                        (request, response, authException) -> response.setStatus(HttpServletResponse.SC_FORBIDDEN)))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

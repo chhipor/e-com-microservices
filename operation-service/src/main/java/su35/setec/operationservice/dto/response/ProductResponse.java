@@ -2,6 +2,7 @@ package su35.setec.operationservice.dto.response;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,6 +20,8 @@ public class ProductResponse {
     private BigDecimal unitPrice;
     private Integer quantityInStock;
     private boolean active;
+    private String thumbnail;
+    private List<String> images;
     private Instant createdAt;
     private Instant updatedAt;
 }

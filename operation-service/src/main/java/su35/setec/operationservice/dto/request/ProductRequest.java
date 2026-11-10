@@ -4,7 +4,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
+import org.hibernate.validator.constraints.URL;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import su35.setec.operationservice.validation.PositiveMoney;
@@ -33,4 +36,11 @@ public class ProductRequest {
     private Integer quantityInStock;
 
     private boolean active = true;
+
+    @URL
+    @Size(max = 1000)
+    private String thumbnail;
+
+    @Size(max = 10)
+    private List<@NotBlank @URL @Size(max = 1000) String> images = new ArrayList<>();
 }

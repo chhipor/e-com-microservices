@@ -1,5 +1,6 @@
 package su35.setec.operationservice.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,8 @@ public class ProductServiceImpl implements ProductService {
                 .unitPrice(request.getUnitPrice())
                 .quantityInStock(request.getQuantityInStock())
                 .active(request.isActive())
+                .thumbnail(blankToNull(request.getThumbnail()))
+                .images(copyImages(request.getImages()))
                 .build();
         return productMapper.toResponse(productRepository.save(product));
     }
@@ -74,7 +77,17 @@ public class ProductServiceImpl implements ProductService {
         product.setUnitPrice(request.getUnitPrice());
         product.setQuantityInStock(request.getQuantityInStock());
         product.setActive(request.isActive());
+        product.setThumbnail(blankToNull(request.getThumbnail()));
+        product.setImages(copyImages(request.getImages()));
         return productMapper.toResponse(productRepository.save(product));
+    }
+
+    private static String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    private static List<String> copyImages(List<String> images) {
+        return images == null ? new ArrayList<>() : new ArrayList<>(images);
     }
 
     @Override

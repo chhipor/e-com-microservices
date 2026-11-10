@@ -16,8 +16,9 @@ spring:
             add-to-simple-url-handler-mapping: true
             cors-configurations:
               '[/**]':
-                # Comma-separated list; override with the CORS_ALLOWED_ORIGINS env var.
-                allowedOrigins: ${CORS_ALLOWED_ORIGINS:http://localhost:3001,http://127.0.0.1:3001}
+                # Comma-separated origin patterns (any localhost port for Flutter web dev);
+                # override with the CORS_ALLOWED_ORIGIN_PATTERNS env var.
+                allowedOriginPatterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:[*],http://127.0.0.1:[*]}
                 allowedMethods: GET,POST,PUT,PATCH,DELETE,OPTIONS
                 allowedHeaders: "*"
                 allowCredentials: true
@@ -89,11 +90,11 @@ management:
       # Actuator endpoints are served by the gateway itself (not via a route), so
       # spring.cloud.gateway.globalcors does not apply to them. Keep in sync with globalcors.
       cors:
-        allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3001,http://127.0.0.1:3001}
         allowed-methods: GET,OPTIONS
         allowed-headers: "*"
         allow-credentials: true
         max-age: 3600
+        allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:[*],http://127.0.0.1:[*]}
   endpoint:
     health:
       show-details: never

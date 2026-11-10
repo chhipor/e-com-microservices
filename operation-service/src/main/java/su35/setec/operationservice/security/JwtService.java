@@ -36,6 +36,18 @@ public class JwtService {
                 && claims.getExpiration().after(new Date());
     }
 
+    /** Returns the claims of a signed, unexpired ACCESS token, or throws if the token is not one. */
+    public Claims parseAccessToken(String token) {
+        Claims claims = extractClaims(token);
+        if (!JwtTokenType.ACCESS.name().equals(claims.get("tokenType", String.class))
+                || claims.getSubject() == null
+                || claims.getExpiration() == null
+                || !claims.getExpiration().after(new Date())) {
+            throw new IllegalArgumentException("Not a valid access token");
+        }
+        return claims;
+    }
+
     private Claims extractClaims(String token) {
         return Jwts.parser()
                 .verifyWith(getSigningKey())

@@ -1,5 +1,6 @@
 package su35.setec.operationservice.repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -13,4 +14,10 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     @Override
     @EntityGraph(attributePaths = {"customer", "items", "items.product"})
     Optional<Order> findById(UUID id);
+
+    @EntityGraph(attributePaths = {"customer", "items", "items.product"})
+    List<Order> findByCustomerIdOrderByOrderDateDesc(UUID customerId);
+
+    @EntityGraph(attributePaths = {"customer", "items", "items.product"})
+    Optional<Order> findByIdAndCustomerId(UUID id, UUID customerId);
 }

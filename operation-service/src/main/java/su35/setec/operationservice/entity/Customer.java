@@ -32,6 +32,10 @@ public class Customer {
     @EqualsAndHashCode.Include
     private UUID id;
 
+    /** auth-service user id (JWT {@code userId} claim); null for customers created by an admin. */
+    @Column(name = "user_id", unique = true)
+    private UUID userId;
+
     @Column(name = "first_name", nullable = false, length = 100)
     private String firstName;
 

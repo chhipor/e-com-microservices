@@ -40,18 +40,55 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse create(OrderRequest request) {
         Customer customer = customerRepository.findById(request.getCustomerId())
                 .orElseThrow(() -> new NotFoundException("Customer not found: " + request.getCustomerId()));
+        return placeOrder(customer, request.getItems(), OrderStatus.COMPLETED);
+    }
 
+    @Override
+    @Transactional
+    public OrderResponse placeOrder(Customer customer, List<OrderItemRequest> items, OrderStatus status) {
         Order order = Order.builder()
                 .orderNumber(generateOrderNumber())
                 .orderDate(Instant.now())
-                .status(OrderStatus.COMPLETED)
+                .status(status)
                 .customer(customer)
                 .items(new ArrayList<>())
                 .build();
 
-        applyItems(order, request.getItems(), false);
+        applyItems(order, items, status != OrderStatus.CANCELLED);
         recalculateTotal(order);
         return orderMapper.toResponse(orderRepository.save(order));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<OrderResponse> findForCustomer(UUID customerId) {
+        return orderRepository.findByCustomerIdOrderByOrderDateDesc(customerId).stream()
+                .map(orderMapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OrderResponse findForCustomer(UUID customerId, UUID orderId) {
+        return orderMapper.toResponse(findOwnedOrder(customerId, orderId));
+    }
+
+    @Override
+    @Transactional
+    public OrderResponse cancelForCustomer(UUID customerId, UUID orderId) {
+        Order order = findOwnedOrder(customerId, orderId);
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new BadRequestException("Only PENDING orders can be cancelled");
+        }
+        restoreStock(order);
+        order.setStatus(OrderStatus.CANCELLED);
+        return orderMapper.toResponse(orderRepository.save(order));
+    }
+
+    private Order findOwnedOrder(UUID customerId, UUID orderId) {
+        // Another customer's order is reported as not found so ids cannot be probed.
+        return orderRepository.findByIdAndCustomerId(orderId, customerId)
+                .orElseThrow(() -> new NotFoundException("Order not found: " + orderId));
     }
 
     @Override
@@ -73,9 +110,12 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Order not found: " + id));
 
-        restoreStock(order);
+        // Cancelled orders already returned their stock; only active orders hold stock.
+        if (order.getStatus() != OrderStatus.CANCELLED) {
+            restoreStock(order);
+        }
         order.getItems().clear();
-        applyItems(order, request.getItems(), false);
+        applyItems(order, request.getItems(), request.getStatus() != OrderStatus.CANCELLED);
         order.setStatus(request.getStatus());
         recalculateTotal(order);
         return orderMapper.toResponse(orderRepository.save(order));
@@ -86,11 +126,13 @@ public class OrderServiceImpl implements OrderService {
     public void delete(UUID id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Order not found: " + id));
-        restoreStock(order);
+        if (order.getStatus() != OrderStatus.CANCELLED) {
+            restoreStock(order);
+        }
         orderRepository.delete(order);
     }
 
-    private void applyItems(Order order, List<OrderItemRequest> requests, boolean restoring) {
+    private void applyItems(Order order, List<OrderItemRequest> requests, boolean deductStock) {
         for (OrderItemRequest itemRequest : requests) {
             Product product = productRepository.findById(itemRequest.getProductId())
                     .orElseThrow(() -> new NotFoundException("Product not found: " + itemRequest.getProductId()));
@@ -100,12 +142,13 @@ public class OrderServiceImpl implements OrderService {
             }
 
             int quantity = itemRequest.getQuantity();
-            if (!restoring && product.getQuantityInStock() < quantity) {
-                throw new BadRequestException("Insufficient stock for product: " + product.getName());
+            if (deductStock) {
+                if (product.getQuantityInStock() < quantity) {
+                    throw new BadRequestException("Insufficient stock for product: " + product.getName());
+                }
+                product.setQuantityInStock(product.getQuantityInStock() - quantity);
+                productRepository.save(product);
             }
-
-            product.setQuantityInStock(restoring ? product.getQuantityInStock() + quantity : product.getQuantityInStock() - quantity);
-            productRepository.save(product);
 
             BigDecimal unitPrice = product.getUnitPrice();
             BigDecimal lineTotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
